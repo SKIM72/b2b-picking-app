@@ -348,6 +348,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const orderSubmitButton = document.getElementById('order-submit-button');
     const barcodeInput = document.getElementById('barcode-input');
     const barcodeSubmitButton = document.getElementById('barcode-submit-button');
+    const orderClearButton = document.getElementById('order-clear-button');
+    const barcodeClearButton = document.getElementById('barcode-clear-button');
     const changeChannelButton = document.getElementById('change-channel-button');
     const logoutButton = document.getElementById('logout-button');
     const quantityModal = document.getElementById('quantity-modal');
@@ -366,6 +368,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if(orderSubmitButton) orderSubmitButton.addEventListener('click', handleOrderSubmit);
     if(barcodeInput) barcodeInput.addEventListener('keydown', e => e.key === 'Enter' && handleBarcodeScan());
     if(barcodeSubmitButton) barcodeSubmitButton.addEventListener('click', handleBarcodeScan);
+    if(orderClearButton) {
+        orderClearButton.addEventListener('click', () => {
+            if(orderInput) {
+                orderInput.value = '';
+                orderInput.focus();
+            }
+        });
+    }
+    if(barcodeClearButton) {
+        barcodeClearButton.addEventListener('click', () => {
+            if(barcodeInput) {
+                barcodeInput.value = '';
+                barcodeInput.focus();
+            }
+        });
+    }
     if(changeChannelButton) {
         changeChannelButton.addEventListener('click', () => {
             if (confirm('채널 선택 화면으로 돌아가시겠습니까? 현재 작업 내용은 저장되지 않습니다.')) {

@@ -159,15 +159,19 @@ async function processQuantityUpdate(item, qtyToAdd) {
         return;
     }
     try {
-        const newPickedQty = currentPicked + qtyToAdd;
-        await supabaseClient.from('picking_items').update({ picked_quantity: newPickedQty }).eq('id', item.id);
-        const newTotalPicked = (currentOrder.total_picked_quantity || 0) + qtyToAdd;
-        const newStatus = newTotalPicked >= currentOrder.total_expected_quantity ? '완료' : '검수중';
-        const { data: updatedOrder } = await supabaseClient.from('picking_orders').update({ total_picked_quantity: newTotalPicked, status: newStatus }).eq('id', currentOrder.id).select().single();
-        
-        item.picked_quantity = newPickedQty;
-        currentOrder.total_picked_quantity = updatedOrder.total_picked_quantity;
-        currentOrder.status = updatedOrder.status;
+        // [수정됨] 클라이언트 단의 update 대신 RPC 호출로 동시성 문제 해결
+        const { data: updatedData, error } = await supabaseClient.rpc('increment_picking_quantity', {
+            p_item_id: item.id,
+            p_order_id: currentOrder.id,
+            p_qty_to_add: qtyToAdd
+        });
+
+        if (error) throw error;
+
+        // DB에서 계산되어 반환된 최신 수량과 상태로 클라이언트 업데이트
+        item.picked_quantity = updatedData.new_picked_qty;
+        currentOrder.total_picked_quantity = updatedData.new_total_picked;
+        currentOrder.status = updatedData.new_status;
 
         playSound('productscan-sound');
         setStatusMessage(`[${item.product_name}] ${qtyToAdd}개 검수 완료.`, 'success');
